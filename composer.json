@@ -1,0 +1,25 @@
+{
+  "name": "helix/framework",
+  "description": "Helix WordPress Theme Framework",
+  "type": "library",
+  "require": {
+    "php": "^8.1",
+    "illuminate/container": "^10.0",
+    "illuminate/support": "^10.0",
+    "illuminate/events": "^10.0",
+    "illuminate/view": "^10.0",
+    "illuminate/filesystem": "^10.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Helix\\": "src/"
+    },
+    "files": [
+      "src/helpers.php"
+    ]
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist"
+  }
+}
