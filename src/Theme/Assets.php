@@ -64,9 +64,9 @@ class Assets
 
     /* -------------------------------------------------------------- */
 
-    public function on(string|array $conditions): static
+    public function on(string|array|\Closure $conditions): static
     {
-        $conditions = (array) $conditions;
+        $conditions = is_array($conditions) ? $conditions : [$conditions];
 
         if ($this->type === 'script') {
             self::$scripts[$this->handle]['conditions'] = array_merge(
@@ -184,15 +184,76 @@ class Assets
         if (empty($conditions)) return true;
 
         foreach ($conditions as $c) {
-            if ($c === 'global')                                           return true;
-            if ($c === 'home'   && (is_front_page() || is_home()))        return true;
-            if ($c === 'single' && is_singular())                         return true;
-            if (str_starts_with($c, 'single-') && is_singular(substr($c, 7))) return true;
-            if (str_starts_with($c, 'page-')   && is_page(substr($c, 5))) return true;
-            if (function_exists('is_checkout') && $c === 'woocommerce-checkout' && is_checkout()) return true;
+            if ($this->matchCondition($c)) return true;
         }
 
         return false;
+    }
+
+    protected function matchCondition(mixed $c): bool
+    {
+        if ($c instanceof \Closure) {
+            return (bool) $c();
+        }
+
+        if (!is_string($c)) return false;
+
+        return match (true) {
+
+            // ── Global ──────────────────────────────────────────────
+            $c === 'global'   => true,
+
+            // ── Home ────────────────────────────────────────────────
+            $c === 'home'     => is_front_page() || is_home(),
+
+            // ── Singular ────────────────────────────────────────────
+            $c === 'single'   => is_singular(),
+
+            // ── Archives ────────────────────────────────────────────
+            $c === 'archive'  => is_archive(),
+            $c === 'search'   => is_search(),
+            $c === '404'      => is_404(),
+            $c === 'category' => is_category(),
+            $c === 'tag'      => is_tag(),
+
+            // ── WooCommerce ─────────────────────────────────────────
+            $c === 'woocommerce-shop'     => function_exists('is_shop')     && is_shop(),
+            $c === 'woocommerce-cart'     => function_exists('is_cart')     && is_cart(),
+            $c === 'woocommerce-checkout' => function_exists('is_checkout') && is_checkout(),
+
+            // ── single-{post_type} ──────────────────────────────────
+            str_starts_with($c, 'single-')   => is_singular(substr($c, 7)),
+
+            // ── page-{slug|id} ──────────────────────────────────────
+            str_starts_with($c, 'page-')     => is_page(substr($c, 5)),
+
+            // ── archive-{post_type} ─────────────────────────────────
+            str_starts_with($c, 'archive-')  => is_post_type_archive(substr($c, 8)),
+
+            // ── category-{slug} ─────────────────────────────────────
+            str_starts_with($c, 'category-') => is_category(substr($c, 9)),
+
+            // ── tag-{slug} ──────────────────────────────────────────
+            str_starts_with($c, 'tag-')      => is_tag(substr($c, 4)),
+
+            // ── tax-{taxonomy} or tax-{taxonomy}:{term} ─────────────
+            str_starts_with($c, 'tax-')      => $this->matchTaxonomy(substr($c, 4)),
+
+            // ── id-{id} ─────────────────────────────────────────────
+            str_starts_with($c, 'id-')       => get_queried_object_id() === (int) substr($c, 3),
+
+            default => false,
+        };
+    }
+
+    protected function matchTaxonomy(string $value): bool
+    {
+        if (str_contains($value, ':')) {
+            [$taxonomy, $term] = explode(':', $value, 2);
+            return is_tax($taxonomy, $term);
+        }
+
+        return is_tax($value);
     }
 
     protected static function builder(string $handle, string $type): static
