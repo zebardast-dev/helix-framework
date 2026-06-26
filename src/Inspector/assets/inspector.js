@@ -275,7 +275,7 @@
         + '<td><div class="hxi-sql-text">' + esc(item.sql.substring(0, 130)) + (item.sql.length > 130 ? '…' : '') + '</div></td>'
         + '<td style="width:120px;padding:6px 10px">'
         + '<div class="hxi-qbar"><div class="hxi-qbar-fill ' + bCls + '"'
-        + ' data-pct="' + pct + '" style="width:0">' + (parseFloat(pct) > 15 ? fmt(item.time) : '') + '</div></div>'
+        + ' data-pct="' + pct + '" style="width:0"></div></div>'
         + timeEl + '</td>'
         + '<td style="width:150px"><span style="font-size:10px;color:var(--c-dim)">' + esc(item.caller) + '</span></td>'
         + '</tr>';

@@ -63,13 +63,47 @@ class QueryCollector implements CollectorInterface
 
     private function shortCaller(string $caller): string
     {
-        // Keep first meaningful call (skip wpdb internals)
         $parts = array_map('trim', explode(',', $caller));
+
+        // Walk from innermost caller outward (last item = most specific before wpdb)
+        $reversed = array_reverse($parts);
+
+        // Patterns to skip — WP infrastructure, not meaningful to the developer
+        $skip = [
+            'wpdb->',
+            'WP_Hook->',
+            'do_action',
+            'apply_filters',
+            'call_user_func',
+            'require(',
+            'require_once(',
+            'include(',
+            'include_once(',
+        ];
+
+        foreach ($reversed as $part) {
+            if (!$part) continue;
+
+            $ignore = false;
+            foreach ($skip as $s) {
+                if (str_contains($part, $s)) {
+                    $ignore = true;
+                    break;
+                }
+            }
+
+            if (!$ignore) {
+                return $part;
+            }
+        }
+
+        // Fallback: first non-wpdb part
         foreach ($parts as $part) {
             if ($part && !str_contains($part, 'wpdb->')) {
                 return $part;
             }
         }
+
         return $parts[0] ?? '';
     }
 }
