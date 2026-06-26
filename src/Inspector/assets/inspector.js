@@ -147,21 +147,21 @@
       + '</div>';
 
     html += '<div class="hxi-cards g3" style="margin-bottom:18px">'
-      + card('Duplicates',   q.duplicates || 0, (q.duplicates || 0) > 0 ? 'w' : 'g', (q.duplicates || 0) > 0 ? 'ac-w' : 'ac-g', 'repeated SQL')
+      + card('Duplicates',   q.duplicates || 0, (q.duplicates || 0) > 0 ? 'w' : 'g', (q.duplicates || 0) > 0 ? 'ac-w' : 'ac-g', (q.duplicates || 0) > 0 ? 'same query ran multiple times' : 'no duplicate queries')
       + card('Slow Queries', q.slow || 0,       (q.slow || 0) > 0 ? 'e' : 'g',       (q.slow || 0) > 0 ? 'ac-e' : 'ac-g',       '> 50ms')
       + card('SEO Score',    sc != null ? sc + '<small style="font-size:14px;letter-spacing:0">/100</small>' : '—', sCls, sAcc, sc != null ? (sc >= 80 ? 'Good' : sc >= 50 ? 'Needs attention' : 'Poor') : 'no data')
       + '</div>';
 
     var v = data.views || {};
     if (v.page_type) {
-      var tags = (v.conditionals || []).map(function (c) { return '<span class="hxi-tag">' + esc(c) + '</span>'; }).join('');
+      var tags = (v.conditionals || []).map(function (c) { return '<span class="hxi-tag">' + esc(c) + '</span>'; }).join(' ');
       html += '<div class="hxi-sec">Page Context</div>';
       html += '<table class="hxi-t hxi-kv"><tbody>'
         + kv('Page type',    '<span class="hxi-tag">' + esc(v.page_type) + '</span>')
         + kv('Post type',    esc(v.post_type || '—'))
-        + kv('Template',     esc(v.template  || '—'))
-        + kv('Conditionals', tags  || '—')
-        + kv('Blade cache',  (v.cache_files || 0) + ' compiled files')
+        + kv('Template',     v.blade_file ? '<span class="hxi-code">' + esc(v.blade_file) + '</span>' : '—')
+        + kv('Conditionals', tags || '—')
+        + (v.total_cache != null ? kv('Compiled cache', v.total_cache + ' total templates on disk') : '')
         + '</tbody></table>';
     }
 
@@ -295,20 +295,26 @@
 
     var tags = (v.conditionals || []).map(function (c) {
       return '<span class="hxi-tag">' + esc(c) + '</span>';
-    }).join('');
+    }).join(' ');
+
+    var tplRow = v.blade_file
+      ? '<span class="hxi-code">' + esc(v.blade_file) + '</span>'
+      : '—';
 
     return '<div class="hxi-sec">Template</div>'
       + '<table class="hxi-t hxi-kv"><tbody>'
+      + kv('Blade view',   v.blade_view ? '<span class="hxi-tag">' + esc(v.blade_view) + '</span>' : '—')
+      + kv('File',         tplRow)
       + kv('Page type',    '<span class="hxi-tag">' + esc(v.page_type) + '</span>')
       + kv('Post type',    esc(v.post_type || '—'))
-      + kv('Template file', esc(v.template || '—'))
       + kv('Conditionals', tags || '—')
       + '</tbody></table>'
-      + '<div class="hxi-sec">Blade Cache</div>'
-      + '<table class="hxi-t hxi-kv"><tbody>'
-      + kv('Compiled files', String(v.cache_files || 0))
-      + (v.cache_dir ? kv('Cache path', '<span class="hxi-code" style="font-size:9.5px">' + esc(v.cache_dir) + '</span>') : '')
-      + '</tbody></table>';
+      + (v.total_cache != null
+        ? '<div class="hxi-sec">Cache</div>'
+          + '<table class="hxi-t hxi-kv"><tbody>'
+          + kv('Compiled templates', v.total_cache + ' files on disk (all views, not just this page)')
+          + '</tbody></table>'
+        : '');
   }
 
   /* ─── Pane: SEO ────────────────────────────────── */

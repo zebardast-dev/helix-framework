@@ -553,7 +553,8 @@ circle.hxi-arc-fill {
 .hxi-check.info  .hxi-cnote { color: var(--c-blue); }
 
 /* ── Tags ────────────────────────────────────────── */
-.hxi-tag {
+/* #hxi-root prefix raises specificity above the #hxi-root * reset */
+#hxi-root .hxi-tag {
   display: inline-flex;
   align-items: center;
   background: rgba(139,124,248,0.1);
@@ -562,7 +563,7 @@ circle.hxi-arc-fill {
   padding: 2px 8px;
   font-size: 10px;
   color: #b4a8ff;
-  margin: 2px 2px 2px 0;
+  margin: 2px 4px 2px 0;
 }
 
 /* ── Notice ──────────────────────────────────────── */
@@ -577,13 +578,15 @@ circle.hxi-arc-fill {
   line-height: 1.7;
 }
 
-.hxi-code {
+#hxi-root .hxi-code {
+  display: inline;
   background: rgba(255,255,255,0.07);
   border: 1px solid var(--c-border);
   border-radius: 3px;
   padding: 1px 5px;
   color: #93c5fd;
   font-size: 10.5px;
+  word-break: break-all;
 }
 
 .hxi-empty {
