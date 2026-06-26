@@ -7,6 +7,7 @@ use Helix\Console\Commands\CacheStatus;
 use Helix\Console\Commands\MakeCommand;
 use Helix\Console\Commands\MakeComponent;
 use Helix\Console\Commands\MakeComposer;
+use Helix\Console\Commands\MakeHandler;
 use Helix\Console\Commands\MakeModel;
 use Helix\Console\Commands\MakePostType;
 use Helix\Console\Commands\MakeRepository;
@@ -57,6 +58,7 @@ class Kernel
     {
         $this->register(MakeComponent::class);
         $this->register(MakeComposer::class);
+        $this->register(MakeHandler::class);
         $this->register(MakeModel::class);
         $this->register(MakeRepository::class);
         $this->register(MakePostType::class);
