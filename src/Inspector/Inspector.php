@@ -2,10 +2,13 @@
 
 namespace Helix\Inspector;
 
+use Helix\Inspector\Collectors\EnvironmentCollector;
+use Helix\Inspector\Collectors\ErrorCollector;
+use Helix\Inspector\Collectors\HooksCollector;
 use Helix\Inspector\Collectors\PerformanceCollector;
 use Helix\Inspector\Collectors\QueryCollector;
-use Helix\Inspector\Collectors\ViewCollector;
 use Helix\Inspector\Collectors\SeoCollector;
+use Helix\Inspector\Collectors\ViewCollector;
 
 class Inspector
 {
@@ -14,7 +17,10 @@ class Inspector
     protected static bool  $booted     = false;
 
     protected static array $defaults = [
+        'errors'      => ErrorCollector::class,
+        'hooks'       => HooksCollector::class,
         'performance' => PerformanceCollector::class,
+        'environment' => EnvironmentCollector::class,
         'queries'     => QueryCollector::class,
         'views'       => ViewCollector::class,
         'seo'         => SeoCollector::class,
@@ -36,10 +42,13 @@ class Inspector
         }
 
         foreach ($enabled as $key) {
-            if (isset(static::$defaults[$key])) {
+            if (!isset(static::$defaults[$key])) continue;
+            try {
                 $collector = new (static::$defaults[$key])();
                 $collector->boot();
                 static::$collectors[$key] = $collector;
+            } catch (\Throwable $e) {
+                // collector failed to boot — skip silently
             }
         }
 
@@ -54,11 +63,23 @@ class Inspector
 
     protected static function shouldRun(): bool
     {
-        if (function_exists('config')) {
-            return (bool) config('inspector.enabled', false);
+        // Primary gate: must be explicitly enabled in config
+        $enabled = function_exists('config')
+            ? (bool) config('inspector.enabled', false)
+            : ((defined('WP_DEBUG') && WP_DEBUG) && (defined('APP_DEBUG') && APP_DEBUG));
+
+        if (!$enabled) return false;
+
+        // Safety net: never run if WP_DEBUG is off (catches misconfigured production)
+        if (!defined('WP_DEBUG') || !WP_DEBUG) return false;
+
+        // Safety net: block only if WP_ENVIRONMENT_TYPE is explicitly set to production/staging
+        if (defined('WP_ENVIRONMENT_TYPE') && function_exists('wp_get_environment_type')) {
+            $env = wp_get_environment_type();
+            if (in_array($env, ['production', 'staging'], true)) return false;
         }
 
-        return (defined('WP_DEBUG') && WP_DEBUG) && (defined('APP_DEBUG') && APP_DEBUG);
+        return true;
     }
 
     public static function render(): void
@@ -77,7 +98,11 @@ class Inspector
         $data = ['_meta' => $meta];
 
         foreach (static::$collectors as $key => $collector) {
-            $data[$key] = $collector->collect();
+            try {
+                $data[$key] = $collector->collect();
+            } catch (\Throwable $e) {
+                $data[$key] = ['_error' => $e->getMessage(), '_file' => basename($e->getFile()) . ':' . $e->getLine()];
+            }
         }
 
         $assetsDir = __DIR__ . '/assets/';

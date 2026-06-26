@@ -19,19 +19,25 @@ class SeoCollector implements CollectorInterface
         $checks = [];
         $score  = 100;
 
-        // Title
-        $title    = wp_get_document_title();
+        // ── Title ──────────────────────────────────────────────────
+        // wp_get_document_title() can return HTML entities (e.g. &#8211;).
+        // Decode before measuring so "Dev – Test" counts as 10, not 16.
+        $rawTitle = wp_get_document_title();
+        $title    = html_entity_decode($rawTitle, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $titleLen = mb_strlen($title);
         $titleOk  = $titleLen >= 30 && $titleLen <= 60;
+
         $checks['title'] = [
             'value'  => $title,
             'length' => $titleLen,
             'status' => $titleOk ? 'ok' : 'warn',
-            'note'   => $titleOk ? 'Good length (30–60 chars)' : ($titleLen < 30 ? 'Too short — aim for 30+ chars' : 'Too long — trim to 60 chars'),
+            'note'   => $titleOk
+                ? 'Good length (30–60 chars)'
+                : ($titleLen < 30 ? 'Too short — aim for 30+ chars' : 'Too long — trim to 60 chars'),
         ];
         if (!$titleOk) $score -= 15;
 
-        // Meta description (WP has none natively — check _yoast_wpseo_metadesc or _rank_math_description)
+        // ── Meta description ────────────────────────────────────────
         $desc = '';
         if ($post) {
             $desc = get_post_meta($post->ID, '_yoast_wpseo_metadesc', true)
@@ -41,18 +47,19 @@ class SeoCollector implements CollectorInterface
         }
         $descLen = mb_strlen($desc);
         $descOk  = $desc && $descLen >= 70 && $descLen <= 160;
+
         $checks['description'] = [
             'value'  => $desc ?: null,
-            'length' => $descLen,
+            'length' => $descLen ?: null,
             'status' => $descOk ? 'ok' : ($desc ? 'warn' : 'error'),
             'note'   => !$desc
                 ? 'Missing — add _meta_description post meta or use Yoast/RankMath'
                 : ($descOk ? 'Good length (70–160 chars)' : ($descLen < 70 ? 'Too short — aim for 70+ chars' : 'Too long — trim to 160 chars')),
         ];
-        if (!$desc) $score -= 20;
+        if (!$desc)      $score -= 20;
         elseif (!$descOk) $score -= 10;
 
-        // Canonical
+        // ── Canonical ───────────────────────────────────────────────
         $canonical = $post ? get_permalink($post) : get_home_url();
         $checks['canonical'] = [
             'value'  => $canonical,
@@ -60,20 +67,24 @@ class SeoCollector implements CollectorInterface
             'note'   => 'WordPress auto-generates this',
         ];
 
-        // H1 check (basic — just post title)
-        $h1 = $post ? get_the_title($post) : null;
-        $checks['h1'] = [
-            'value'  => $h1,
-            'status' => $h1 ? 'ok' : 'warn',
-            'note'   => $h1 ? 'Found in post title' : 'No post title found',
+        // ── Page title (H1 proxy) ───────────────────────────────────
+        // We cannot scrape the rendered <h1> tag server-side without output buffering.
+        // We read the post/page title as a reliable proxy and flag it clearly.
+        $pageTitle = $post ? html_entity_decode(get_the_title($post), ENT_QUOTES | ENT_HTML5, 'UTF-8') : null;
+        $checks['page_title'] = [
+            'value'  => $pageTitle,
+            'status' => $pageTitle ? 'ok' : 'warn',
+            'note'   => $pageTitle
+                ? 'Post/page title (verify your template outputs it as <h1>)'
+                : 'No post/page title found',
         ];
-        if (!$h1) $score -= 10;
+        if (!$pageTitle) $score -= 10;
 
-        // OG tags — detect via registered wp_head actions
-        $hasYoast     = defined('WPSEO_VERSION');
-        $hasRankMath  = class_exists('\\RankMath');
-        $hasHelixSeo  = false; // placeholder for future Helix SEO module
-        $ogSource     = $hasYoast ? 'Yoast' : ($hasRankMath ? 'RankMath' : null);
+        // ── OG Tags ─────────────────────────────────────────────────
+        $hasYoast    = defined('WPSEO_VERSION');
+        $hasRankMath = class_exists('\\RankMath');
+        $ogSource    = $hasYoast ? 'Yoast SEO' : ($hasRankMath ? 'RankMath' : null);
+
         $checks['og_tags'] = [
             'status' => $ogSource ? 'ok' : 'warn',
             'note'   => $ogSource
@@ -82,8 +93,10 @@ class SeoCollector implements CollectorInterface
         ];
         if (!$ogSource) $score -= 10;
 
-        // Robots
-        $isNoindex = is_singular() && $post && (get_post_meta($post->ID, '_yoast_wpseo_meta-robots-noindex', true) === '1');
+        // ── Robots ──────────────────────────────────────────────────
+        $isNoindex = is_singular() && $post
+            && get_post_meta($post->ID, '_yoast_wpseo_meta-robots-noindex', true) === '1';
+
         $checks['robots'] = [
             'status' => $isNoindex ? 'warn' : 'ok',
             'note'   => $isNoindex ? 'Page is set to noindex' : 'Indexable',

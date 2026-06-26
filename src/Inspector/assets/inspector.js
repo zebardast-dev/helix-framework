@@ -359,7 +359,142 @@
     return hero + list;
   }
 
-  var builders = { overview: buildOverview, performance: buildPerformance, queries: buildQueries, views: buildViews, seo: buildSeo };
+  function buildEnvironment() {
+    var e   = data.environment || {};
+    var wp  = e.wordpress  || {};
+    var php = e.php        || {};
+    var srv = e.server     || {};
+    var db  = e.database   || {};
+    var th  = e.theme      || {};
+    var con = e.constants  || {};
+    var plg = e.plugins    || [];
+
+    function row(label, val) {
+      if (val === null || val === undefined || val === '') return '';
+      return '<tr><td class="hxi-klbl">' + esc(label) + '</td><td>' + esc(String(val)) + '</td></tr>';
+    }
+
+    function section(title, rows) {
+      return '<div class="hxi-sec">' + title + '</div><table class="hxi-qtable"><tbody>' + rows + '</tbody></table>';
+    }
+
+    var wpRows = row('Version', wp.version) + row('Site URL', wp.site_url)
+      + row('Language', wp.language) + row('Charset', wp.charset)
+      + row('Multisite', wp.multisite ? 'Yes' : 'No');
+
+    var phpRows = row('Version', php.version) + row('SAPI', php.sapi)
+      + row('Memory Limit', php.memory_limit) + row('Max Exec Time', php.max_exec_time + 's')
+      + row('Upload Max', php.upload_max) + row('Post Max', php.post_max);
+
+    var extHtml = '<div class="hxi-sec">PHP Extensions</div><div class="hxi-row">';
+    Object.keys(php.extensions || {}).forEach(function (ext) {
+      var has = php.extensions[ext];
+      extHtml += '<span class="hxi-tag ' + (has ? 'ac-g' : 'ac-e') + '">' + esc(ext) + '</span>';
+    });
+    extHtml += '</div>';
+
+    var srvRows = row('Software', srv.software) + row('OS', srv.os)
+      + row('Hostname', srv.hostname) + row('HTTPS', srv.https ? 'Yes' : 'No');
+
+    var dbRows = row('Version', db.version) + row('Prefix', db.prefix)
+      + row('Charset', db.charset) + row('Collate', db.collate);
+
+    var thRows = row('Name', th.name) + row('Version', th.version)
+      + row('Template', th.template) + row('Stylesheet', th.stylesheet)
+      + (th.parent ? row('Parent', th.parent + ' ' + (th.parent_ver || '')) : '');
+
+    var conRows = '';
+    Object.keys(con).forEach(function (k) {
+      var v = con[k];
+      var display = v === null ? 'undefined' : v === true ? 'true' : v === false ? 'false' : String(v);
+      conRows += '<tr><td class="hxi-klbl"><span class="hxi-code">' + esc(k) + '</span></td>'
+        + '<td><span class="hxi-tag ' + (v ? 'ac-g' : 'ac-b') + '">' + esc(display) + '</span></td></tr>';
+    });
+
+    var pluginHtml = '<div class="hxi-sec">Active Plugins (' + plg.length + ')</div><table class="hxi-qtable"><tbody>';
+    plg.forEach(function (p) {
+      pluginHtml += '<tr><td>' + esc(p.name) + '</td><td class="hxi-klbl">v' + esc(p.version) + '</td></tr>';
+    });
+    pluginHtml += '</tbody></table>';
+
+    return section('WordPress', wpRows)
+      + section('PHP', phpRows)
+      + extHtml
+      + section('Server', srvRows)
+      + section('Database', dbRows)
+      + section('Theme', thRows)
+      + section('WP Constants', conRows)
+      + pluginHtml;
+  }
+
+  function buildHooks() {
+    var h     = data.hooks || {};
+    var hooks = h.hooks || [];
+
+    var summary = '<div class="hxi-row">'
+      + '<div class="hxi-stat"><div class="hxi-stat-n">' + (h.total_fired  || 0) + '</div><div class="hxi-stat-l">Total Fired</div></div>'
+      + '<div class="hxi-stat"><div class="hxi-stat-n">' + (h.unique_hooks || 0) + '</div><div class="hxi-stat-l">Unique Hooks</div></div>'
+      + '</div>';
+
+    if (!hooks.length) {
+      return summary + '<div class="hxi-empty">No hooks recorded</div>';
+    }
+
+    var table = '<div class="hxi-sec">Top Hooks</div>'
+      + '<table class="hxi-qtable"><thead><tr>'
+      + '<th>Hook</th><th>Fired</th><th>Callbacks</th>'
+      + '</tr></thead><tbody>';
+
+    hooks.forEach(function (hk) {
+      table += '<tr>'
+        + '<td><span class="hxi-code">' + esc(hk.name) + '</span></td>'
+        + '<td>' + hk.fired + '</td>'
+        + '<td>' + hk.callbacks + '</td>'
+        + '</tr>';
+    });
+
+    table += '</tbody></table>';
+
+    return summary + table;
+  }
+
+  function buildErrors() {
+    var e = data.errors || {};
+    var total  = e.total  || 0;
+    var counts = e.counts || {};
+    var errors = e.errors || [];
+
+    if (!total) {
+      return '<div class="hxi-empty">No PHP errors detected</div>';
+    }
+
+    var summary = '<div class="hxi-sec">Summary</div><div class="hxi-row">';
+    [['fatal','Fatal'],['error','Error'],['warning','Warning'],['notice','Notice'],['deprecated','Deprecated']].forEach(function(p) {
+      var n = counts[p[0]] || 0;
+      if (!n) return;
+      summary += '<div class="hxi-stat"><div class="hxi-stat-n">' + n + '</div><div class="hxi-stat-l">' + p[1] + '</div></div>';
+    });
+    summary += '</div>';
+
+    var levelClass = { fatal: 'ac-e', error: 'ac-e', warning: 'ac-w', notice: 'ac-b', deprecated: 'ac-p' };
+
+    var list = '<div class="hxi-sec">Errors</div><div class="hxi-etable">';
+    errors.forEach(function (err) {
+      var cls = levelClass[err.level] || 'ac-b';
+      list += '<div class="hxi-erow ' + cls + '">'
+        + '<div class="hxi-etop">'
+        + '<span class="hxi-tag">' + esc(err.type) + '</span>'
+        + '<span class="hxi-efile">' + esc(err.file) + ':' + err.line + '</span>'
+        + '</div>'
+        + '<div class="hxi-emsg">' + esc(err.message) + '</div>'
+        + '</div>';
+    });
+    list += '</div>';
+
+    return summary + list;
+  }
+
+  var builders = { environment: buildEnvironment, errors: buildErrors, hooks: buildHooks, overview: buildOverview, performance: buildPerformance, queries: buildQueries, views: buildViews, seo: buildSeo };
 
   /* ─── Tab rendering ────────────────────────────── */
   function openTab(name) {
@@ -375,7 +510,12 @@
       var div = document.createElement('div');
       div.className = 'hxi-pane';
       div.dataset.pane = name;
-      div.innerHTML = (builders[name] || function () { return '<div class="hxi-empty">No data</div>'; })();
+      var tabData = data[name] || {};
+      if (tabData._error) {
+        div.innerHTML = '<div class="hxi-empty">Collector error: ' + esc(tabData._error) + '<br><small>' + esc(tabData._file || '') + '</small></div>';
+      } else {
+        div.innerHTML = (builders[name] || function () { return '<div class="hxi-empty">No data</div>'; })();
+      }
       panes.appendChild(div);
       existing = div;
 

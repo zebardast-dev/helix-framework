@@ -53,7 +53,7 @@ class QueryCollector implements CollectorInterface
 
         return [
             'enabled'    => true,
-            'queries'    => $queries,
+            'queries'    => array_slice($queries, 0, 200),
             'total'      => count($queries),
             'total_time' => round($totalTime, 2),
             'duplicates' => $dupes,
