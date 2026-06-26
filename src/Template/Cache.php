@@ -7,9 +7,14 @@ class Cache
     protected string $prefix = 'helix_tpl_';
     protected int    $expire = 3600;
 
+    public function __construct()
+    {
+        $this->expire = function_exists('config') ? (int) config('cache.expire', 3600) : 3600;
+    }
+
     public function get(string $key): mixed
     {
-        if (defined('DISABLE_TEMPLATE_CACHE') && DISABLE_TEMPLATE_CACHE) {
+        if (!$this->isEnabled()) {
             return false;
         }
 
@@ -33,7 +38,7 @@ class Cache
 
     public function put(string $key, mixed $value): bool
     {
-        if (defined('DISABLE_TEMPLATE_CACHE') && DISABLE_TEMPLATE_CACHE) {
+        if (!$this->isEnabled()) {
             return false;
         }
 
@@ -51,6 +56,14 @@ class Cache
 
         wp_cache_delete($cacheKey, 'helix');
         delete_transient($cacheKey);
+    }
+
+    protected function isEnabled(): bool
+    {
+        if (function_exists('config')) {
+            return (bool) config('cache.templates', false);
+        }
+        return !(defined('DISABLE_TEMPLATE_CACHE') && DISABLE_TEMPLATE_CACHE);
     }
 
     protected function key(string $key): string
