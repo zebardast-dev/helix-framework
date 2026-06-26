@@ -55,11 +55,8 @@ class Framework
         $viewsPath = $app->make('helix.views_path');
         $cachePath = $app->make('helix.cache_path') . '/views';
 
-        if (!is_dir($cachePath)) {
-            mkdir($cachePath, 0777, true);
-        }
-
         $filesystem = new Filesystem();
+        $filesystem->ensureDirectoryExists($cachePath);
         $app->instance('files', $filesystem);
 
         $blade = new BladeCompiler($filesystem, $cachePath);

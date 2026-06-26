@@ -2,6 +2,7 @@
 
 namespace Helix\View;
 
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Compilers\BladeCompiler;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -68,9 +69,7 @@ class ComponentDiscovery
     {
         $cache = static::cachePath();
 
-        if (!is_dir(dirname($cache))) {
-            mkdir(dirname($cache), 0755, true);
-        }
+        (new Filesystem())->ensureDirectoryExists(dirname($cache));
 
         file_put_contents($cache, '<?php return ' . var_export($components, true) . ';');
     }
