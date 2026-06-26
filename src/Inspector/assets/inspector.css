@@ -51,6 +51,7 @@
 #hxi-bar {
   display: flex;
   align-items: stretch;
+  gap: 24px;
   background: var(--c-surf);
   border-top: 1px solid var(--c-border);
   height: var(--bar-h);
@@ -85,13 +86,14 @@
   display: flex;
   align-items: stretch;
   flex: 1;
+  gap:12px;
   overflow: hidden;
 }
 
 .hxi-tab {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   padding: 0 14px;
   color: var(--c-dim2);
   cursor: pointer;
@@ -197,7 +199,7 @@
   height: var(--panel-h);
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 18px 22px 22px;
+  padding: 18px 22px 22px !important;
   scrollbar-width: thin;
   scrollbar-color: var(--c-border) transparent;
 }

@@ -99,7 +99,7 @@ class Inspector
         echo '<div id="hxi-bar">';
         echo '<div class="hxi-logo">⚡ <strong>Helix</strong></div>';
         echo '<nav id="hxi-tabs">';
-        echo '<button class="hxi-tab active" data-tab="overview">Overview</button>';
+        echo '<button class="hxi-tab active" data-tab="overview">📊 Overview</button>';
 
         foreach (static::$collectors as $key => $collector) {
             echo '<button class="hxi-tab" data-tab="' . esc_attr($key) . '">'

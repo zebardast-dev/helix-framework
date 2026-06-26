@@ -410,7 +410,7 @@
     tabs.querySelectorAll('.hxi-tab').forEach(function (btn) {
       if (btn.dataset.tab === 'queries' && q.total) {
         var cls = q.slow > 0 ? 't-err' : q.duplicates > 0 ? 't-warn' : '';
-        btn.innerHTML = 'Queries <span class="hxi-badge">' + q.total + '</span>';
+        btn.innerHTML = '🗄 Queries <span class="hxi-badge">' + q.total + '</span>';
         if (cls) btn.classList.add(cls);
       }
     });
