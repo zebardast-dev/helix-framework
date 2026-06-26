@@ -4,6 +4,7 @@ namespace Helix\Console;
 
 use Helix\Console\Commands\CacheClear;
 use Helix\Console\Commands\CacheStatus;
+use Helix\Console\Commands\DbSeed;
 use Helix\Console\Commands\MakeCommand;
 use Helix\Console\Commands\MakeComponent;
 use Helix\Console\Commands\MakeComposer;
@@ -11,6 +12,7 @@ use Helix\Console\Commands\MakeHandler;
 use Helix\Console\Commands\MakeModel;
 use Helix\Console\Commands\MakePostType;
 use Helix\Console\Commands\MakeRepository;
+use Helix\Console\Commands\MakeSeeder;
 
 class Kernel
 {
@@ -62,7 +64,9 @@ class Kernel
         $this->register(MakeModel::class);
         $this->register(MakeRepository::class);
         $this->register(MakePostType::class);
+        $this->register(MakeSeeder::class);
         $this->register(MakeCommand::class);
+        $this->register(DbSeed::class);
         $this->register(CacheClear::class);
         $this->register(CacheStatus::class);
     }
@@ -110,12 +114,13 @@ class Kernel
 
     protected function groupedCommands(): array
     {
-        $groups = ['Make' => [], 'Cache' => []];
+        $groups = ['Make' => [], 'Database' => [], 'Cache' => []];
 
         foreach ($this->commands as $signature => $class) {
             $prefix = explode(':', $signature)[0];
             $group  = match ($prefix) {
                 'make'  => 'Make',
+                'db'    => 'Database',
                 'cache' => 'Cache',
                 default => 'Other',
             };
