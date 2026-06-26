@@ -41,7 +41,7 @@ class QueryBuilder
 
     public function limit(int $count): self
     {
-        $this->args['posts_per_page'] = max(1, $count);
+        $this->args['posts_per_page'] = $count === -1 ? -1 : max(1, $count);
         return $this;
     }
 
