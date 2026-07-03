@@ -1,5 +1,7 @@
 # Helix Framework
 
+`zebardast-dev/helix-framework`
+
 A config-driven WordPress framework for modern theme development.
 
 Built on Laravel's Illuminate components — Blade templating, dependency injection, service architecture, console commands, and a debug inspector — without leaving the WordPress ecosystem.
@@ -7,13 +9,13 @@ Built on Laravel's Illuminate components — Blade templating, dependency inject
 ## Requirements
 
 - PHP 8.1+
-- WordPress 5.9+
+- WordPress 6.0+
 - Composer
 
 ## Installation
 
 ```bash
-composer require helix/framework
+composer require zebardast-dev/helix-framework
 ```
 
 ## Usage
@@ -25,18 +27,32 @@ require_once __DIR__ . '/vendor/autoload.php';
 $app = Helix\Framework::create(__DIR__);
 ```
 
-See [helix-starter](https://github.com/zebardast-dev/helix-starter) for a full working example.
+See [helix-starter](https://github.com/zebardast-dev/helix-starter) for a full working theme example.
 
 ## Documentation
 
-Coming soon.
+Full documentation is currently being prepared.
+
+Topics that will be covered:
+
+- Getting Started
+- Configuration
+- Blade Templates
+- Components
+- View Composers
+- Models & Queries
+- Assets
+- Custom Post Types
+- CLI Commands
+- Inspector
+- WooCommerce
 
 ## Credits
 
 HelixPress was developed through a human-AI collaborative workflow.
 
 - **Architecture & Product Direction:** Mostafa Zebardast
-- **Research & Technical Analysis:** ChatGPT & Claude
+- **Idea & Research:** Amirhossein Zebardast ([@amirz-dev](https://github.com/amirz-dev))
 - **Implementation & Coding:** Mostafa Zebardast & Claude (Anthropic)
 - **Review & Refinement:** AI-assisted
 
