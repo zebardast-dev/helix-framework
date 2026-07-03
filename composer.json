@@ -2,6 +2,7 @@
   "name": "zebardast-dev/helix-framework",
   "description": "Helix WordPress Theme Framework",
   "type": "library",
+  "license": "MIT",
   "require": {
     "php": "^8.1",
     "illuminate/container": "^10.0",
