@@ -52,7 +52,7 @@ Topics that will be covered:
 HelixPress was developed through a human-AI collaborative workflow.
 
 - **Architecture & Product Direction:** Mostafa Zebardast
-- **Idea & Research:** Amirhossein Zebardast ([@amirz-dev](https://github.com/amirz-dev))
+- **Idea & Research:** Mostafa Zebardast ([@zebardast-dev](https://github.com/zebardast-dev)), Amirhossein Zebardast ([@amirz-dev](https://github.com/amirz-dev))
 - **Implementation & Coding:** Mostafa Zebardast & Claude (Anthropic)
 - **Review & Refinement:** AI-assisted
 
