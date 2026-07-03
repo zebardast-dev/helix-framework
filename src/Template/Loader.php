@@ -36,6 +36,12 @@ class Loader
             return app('helix.template_file');
         }
 
+        // Fallback for legacy boot() path: derive from basePath if available
+        $container = app();
+        if (method_exists($container, 'basePath') && $container->basePath()) {
+            return $container->basePath('bootstrap/view.php');
+        }
+
         return get_template_directory() . '/bootstrap/view.php';
     }
 }

@@ -49,9 +49,18 @@ if (!function_exists('theme_option')) {
 if (!function_exists('asset')) {
     function asset(string $path): string
     {
-        return defined('ASSETS_URI')
-            ? ASSETS_URI . '/' . ltrim($path, '/')
-            : '';
+        $container = Container::getInstance();
+
+        // Prefer an explicitly bound URI (set by starter or config)
+        if ($container->has('helix.assets_uri')) {
+            return $container->make('helix.assets_uri') . '/' . ltrim($path, '/');
+        }
+
+        if (defined('ASSETS_URI')) {
+            return ASSETS_URI . '/' . ltrim($path, '/');
+        }
+
+        return '';
     }
 }
 
@@ -83,9 +92,16 @@ if (!function_exists('image_url')) {
 if (!function_exists('svg')) {
     function svg(string $name): string
     {
-        $file = defined('THEME_DIR')
-            ? THEME_DIR . '/assets/svg/' . $name . '.svg'
-            : get_template_directory() . '/assets/svg/' . $name . '.svg';
+        $container = Container::getInstance();
+
+        // Use the injected basePath when available (Framework::create() path)
+        if (method_exists($container, 'basePath') && $container->basePath()) {
+            $file = $container->basePath('assets/svg/' . $name . '.svg');
+        } elseif (defined('THEME_DIR')) {
+            $file = THEME_DIR . '/assets/svg/' . $name . '.svg';
+        } else {
+            $file = get_template_directory() . '/assets/svg/' . $name . '.svg';
+        }
 
         return file_exists($file) ? file_get_contents($file) : '';
     }
