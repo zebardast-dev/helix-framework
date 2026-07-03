@@ -8,7 +8,8 @@
     "illuminate/support": "^10.0",
     "illuminate/events": "^10.0",
     "illuminate/view": "^10.0",
-    "illuminate/filesystem": "^10.0"
+    "illuminate/filesystem": "^10.0",
+    "vlucas/phpdotenv": "^5.4"
   },
   "autoload": {
     "psr-4": {
