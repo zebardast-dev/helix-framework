@@ -40,7 +40,7 @@ class MakePostType extends Command
         {
             protected string \$key      = '{$key}';
             protected string \$singular = '{$singular}';
-            protected string \$plural   = '{$plural}s';
+            protected string \$plural   = '{$plural}';
             protected string \$icon     = 'dashicons-admin-post';
             protected array  \$supports = ['title', 'editor', 'thumbnail'];
 
@@ -56,8 +56,8 @@ class MakePostType extends Command
             protected array \$labels = [
                 // 'add_new_item'       => 'Add {$singular}',
                 // 'edit_item'          => 'Edit {$singular}',
-                // 'not_found'          => 'No {$plural}s found',
-                // 'not_found_in_trash' => 'No {$plural}s found in Trash',
+                // 'not_found'          => 'No {$plural} found',
+                // 'not_found_in_trash' => 'No {$plural} found in Trash',
             ];
 
             public function boot(): void
