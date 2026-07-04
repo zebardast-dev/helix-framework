@@ -72,7 +72,7 @@ class MakePostType extends Command
             $this->success("Post type {$className} created.");
             $this->comment("app/PostTypes/{$className}.php");
             $this->newLine();
-            $this->warn("Register it in core/post-types.php to activate.");
+            $this->warn("Register it in config/app.php under 'post_types' to activate.");
         }
 
         return 0;
